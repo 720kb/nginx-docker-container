@@ -45,8 +45,10 @@ cd /tmp/nginx && \
   --with-pcre \
   --with-google_perftools_module \
   --with-debug && \
-make && make install
+make && \
+make install
 
+ADD ./run//bootstrap.sh /opt/bootstrap.sh
 EXPOSE 80 443
 
-CMD ["/bin/bash", "nginx && sleep 5 && tail -f /var/log/nginx/access.log /var/log/nginx/error.log" ]
+CMD ["/bin/bash", "/opt/bootstrap.sh" ]
