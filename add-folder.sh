@@ -34,12 +34,13 @@ if [[ $SUBROOT = '/' ]]; then
 else
 
   echo "not supported by now...";
+  exit 1
 fi
 
-docker exec -it nginx sh -c "[ -b $DEV ] || mknod --mode 0600 $DEV b $DEVDEC"
-docker exec -it nginx mkdir $TMPDIR
-docker exec -it nginx mount $DEV $TMPDIR
-docker exec -it nginx mkdir -p $CONTPATH
-docker exec -it nginx mount -o bind $TMPDIR/$SUBROOT/$SUBPATH $CONTPATH
-docker exec -it nginx umount $TMPDIR
+docker exec -it nginx sh -c "[ -b $DEV ] || mknod --mode 0600 $DEV b $DEVDEC" && \
+docker exec -it nginx mkdir $TMPDIR && \
+docker exec -it nginx mount $DEV $TMPDIR && \
+docker exec -it nginx mkdir -p $CONTPATH && \
+docker exec -it nginx mount -o bind $TMPDIR/$SUBROOT/$SUBPATH $CONTPATH && \
+docker exec -it nginx umount $TMPDIR && \
 docker exec -it nginx rmdir $TMPDIR
