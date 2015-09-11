@@ -6,6 +6,7 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y wget build-essential zlib1g-dev libpcre3-dev libssl-dev libxslt1-dev libxml2-dev libgd2-xpm-dev libgeoip-dev libgoogle-perftools-dev libperl-dev
 
 RUN mkdir -p /tmp/nginx && \
+mkdir -p /opt/nginx-configuration && \
 wget http://nginx.org/download/nginx-$(wget -O - http://nginx.org/download/ | \
   grep -o -P '<a href="nginx-.+.tar.gz">' | \
   sed -re's/<a href="nginx-(.+)\.tar.gz">/\1/g' | \
@@ -14,7 +15,7 @@ tar --extract --file=latest_ngnix.gzipped --strip-components=1 --directory=/tmp/
 cd /tmp/nginx && \
 ./configure --prefix=/usr/local/nginx \
   --sbin-path=/usr/local/sbin/nginx \
-  --conf-path=/etc/nginx/nginx.conf \
+  --conf-path=/opt/nginx-configuration/nginx.conf \
   --error-log-path=/var/log/nginx/error.log \
   --http-log-path=/var/log/nginx/access.log \
   --pid-path=/var/run/nginx.pid \
@@ -48,7 +49,7 @@ cd /tmp/nginx && \
 make && \
 make install
 
-ADD ./run//bootstrap.sh /opt/bootstrap.sh
+ADD ./run/bootstrap.sh /opt/bootstrap.sh
 EXPOSE 80 443
 
 CMD ["/bin/bash", "/opt/bootstrap.sh" ]
