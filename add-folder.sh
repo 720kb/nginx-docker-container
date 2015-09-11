@@ -4,13 +4,14 @@
 
 if [ $# -eq 0 ] || [ $# -eq 1 ]; then
 
-  echo "Not correct arguments supplied. Usage: ./add-folder.sh <host-path> <container-path>" && \
+  echo "Not correct arguments supplied. Usage: ./add-folder.sh <host-path> <container-path> <stop-nginx>" && \
   exit 1
 fi
 
 set -e
 HOSTPATH=$1
 CONTPATH=$2
+TO_STOP=$3
 TMPDIR='/tmpmnt'
 REALPATH=$(readlink --canonicalize $HOSTPATH)
 FILESYS=$(df -P $REALPATH | tail -n 1 | awk '{print $6}')
@@ -28,19 +29,23 @@ done < /proc/self/mountinfo
 SUBPATH=$(echo $REALPATH | sed s,^$FILESYS,,)
 DEVDEC=$(printf "%d %d" $(stat --format "0x%t 0x%T" $DEV))
 
-if [[ $SUBROOT = '/' ]]; then
-
-  BINDDIR="$TMPDIR$SUBPATH";
-else
-
-  echo "not supported by now...";
-  exit 1
+if [[ $TO_STOP ]]; then
+  echo "Stopping nginx inside the container" && \
+  docker exec -it nginx nginx -s stop
 fi
 
-docker exec -it nginx sh -c "[ -b $DEV ] || mknod --mode 0600 $DEV b $DEVDEC" && \
-docker exec -it nginx mkdir $TMPDIR && \
-docker exec -it nginx mount $DEV $TMPDIR && \
-docker exec -it nginx mkdir -p $CONTPATH && \
-docker exec -it nginx mount -o bind $TMPDIR/$SUBROOT/$SUBPATH $CONTPATH && \
-docker exec -it nginx umount $TMPDIR && \
-docker exec -it nginx rmdir $TMPDIR
+docker exec -it nginx bash -c "[ -b $DEV ] || mknod --mode 0600 $DEV b $DEVDEC"
+docker exec -it nginx bash -c "mkdir $TMPDIR"
+docker exec -it nginx bash -c "mount $DEV $TMPDIR"
+docker exec -it nginx bash -c "mkdir -p /tmp/swap_folder"
+docker exec -it nginx bash -c "[ $(find $CONTPATH -maxdepth 0 -type d -empty 2>/dev/null) ] && mkdir -p $CONTPATH || mv $CONTPATH/* /tmp/swap_folder"
+docker exec -it nginx bash -c "mount -o bind $TMPDIR/$SUBROOT/$SUBPATH $CONTPATH"
+docker exec -it nginx bash -c "[ $(find /tmp/swap_folder -maxdepth 0 -type d -empty 2>/dev/null) ] || mv /tmp/swap_folder/* $CONTPATH"
+docker exec -it nginx bash -c "rm -Rf /tmp/swap_folder"
+docker exec -it nginx bash -c "umount $TMPDIR"
+docker exec -it nginx bash -c "rmdir $TMPDIR"
+
+if [[ $TO_STOP ]]; then
+  echo "Restarting nginx inside the container" && \
+  docker exec -it nginx nginx
+fi
