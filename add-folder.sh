@@ -46,7 +46,7 @@ if [[ $(find $REALPATH -maxdepth 0 -type d -empty 2>/dev/null) ]]; then
 else
 
   #not empty
-  docker exec -it nginx bash -c "[ $(find $CONTPATH -maxdepth 0 -type d -empty 2>/dev/null) ] && mkdir -p $CONTPATH || rm $CONTPATH/*"
+  docker exec -it nginx bash -c "[ $(find $CONTPATH -maxdepth 0 -type d -empty 2>/dev/null) ] && mkdir -p $CONTPATH || rm -Rf $CONTPATH/*"
 fi
 
 docker exec -it nginx bash -c "mount -o bind $TMPDIR/$SUBROOT/$SUBPATH $CONTPATH"
