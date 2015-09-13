@@ -35,7 +35,7 @@ if [[ $TO_STOP ]]; then
 fi
 
 docker exec -it nginx bash -c "[ -b $DEV ] || mknod --mode 0600 $DEV b $DEVDEC"
-docker exec -it nginx bash -c "mkdir $TMPDIR"
+docker exec -it nginx bash -c "mkdir -p $TMPDIR"
 docker exec -it nginx bash -c "mount $DEV $TMPDIR"
 docker exec -it nginx bash -c "mkdir -p /tmp/swap_folder"
 
