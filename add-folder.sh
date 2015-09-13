@@ -31,7 +31,7 @@ DEVDEC=$(printf "%d %d" $(stat --format "0x%t 0x%T" $DEV))
 if [[ $TO_STOP ]]; then
 
   echo "Stopping nginx inside the container" && \
-  docker exec -it nginx nginx -s stop
+  docker exec -it nginx bash -c "nginx -s stop"
 fi
 
 docker exec -it nginx bash -c "[ -b $DEV ] || mknod --mode 0600 $DEV b $DEVDEC"
