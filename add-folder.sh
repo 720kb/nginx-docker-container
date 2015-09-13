@@ -50,7 +50,7 @@ else
 fi
 
 docker exec -it nginx bash -c "mount -o bind $TMPDIR/$SUBROOT/$SUBPATH $CONTPATH"
-docker exec -it nginx bash -c "[ $(find /tmp/swap_folder -maxdepth 0 -type d -empty 2>/dev/null) ] || mv /tmp/swap_folder/* $CONTPATH 2>/dev/null"
+docker exec -it nginx bash -c "[ $(find /tmp/swap_folder -maxdepth 0 -type d -empty 2>/dev/null) ] || mv /tmp/swap_folder/* $CONTPATH"
 
 docker exec -it nginx bash -c "rm -Rf /tmp/swap_folder && umount $TMPDIR && rmdir $TMPDIR"
 
