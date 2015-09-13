@@ -42,16 +42,22 @@ docker exec -it nginx bash -c "mkdir -p /tmp/swap_folder"
 if [[ $(find $REALPATH -maxdepth 0 -type d -empty 2>/dev/null) ]]; then
 
   #empty
+  echo "$REALPATH is empty then I move the content of $CONTPATH folder in /tmp/swap_folder..."
   docker exec -it nginx bash -c "[ $(find $CONTPATH -maxdepth 0 -type d -empty 2>/dev/null) ] && mkdir -p $CONTPATH || mv $CONTPATH/* /tmp/swap_folder"
 else
 
   #not empty
+  echo "$REALPATH is not empty then I delete the content of $CONTPATH..."
   docker exec -it nginx bash -c "[ $(find $CONTPATH -maxdepth 0 -type d -empty 2>/dev/null) ] && mkdir -p $CONTPATH || rm -Rf $CONTPATH/*"
 fi
 
+echo "Mounting $TMPDIR/$SUBROOT/$SUBPATH in $CONTPATH..."
 docker exec -it nginx bash -c "mount -o bind $TMPDIR/$SUBROOT/$SUBPATH $CONTPATH"
-docker exec -it nginx bash -c "[ $(find /tmp/swap_folder -maxdepth 0 -type d -empty 2>/dev/null) ] && echo 'swap folder empty' || mv /tmp/swap_folder/* $CONTPATH"
 
+echo "If /tmp/swap_folder is populated then moving the content in $CONTPATH..."
+docker exec -it nginx bash -c "[ $(find /tmp/swap_folder -maxdepth 0 -type d -empty 2>/dev/null) ] || mv /tmp/swap_folder/* $CONTPATH"
+
+echo "Cleaning the working data..."
 docker exec -it nginx bash -c "rm -Rf /tmp/swap_folder && umount $TMPDIR && rmdir $TMPDIR"
 
 if [[ $TO_STOP ]]; then
@@ -59,3 +65,5 @@ if [[ $TO_STOP ]]; then
   echo "Restarting nginx inside the container" && \
   docker exec -it nginx nginx
 fi
+
+echo "Finished."
