@@ -9,31 +9,39 @@
 
 ### Building it locally (recommended)
 
-    sh ./build.sh
+    ./build.sh
 
 
 ### Running it
 
 run it locally via:
 
-    sh ./run-nginx.sh
-    
+    ./run-nginx.sh
+
 
 then open your browser at <http://localhost/> !  docker magic voodo!
 
 ### API (wip)
 
     ./add-folder.sh <container-dir> <host-dir> # you have to restart it
-    
-    
+
+example:
+
+    ./add-folder.sh ./example/vhosts /opt/nginx-configuration/sites-enabled
+    ./add-folder.sh ./example/www /var/www
+
+
 ### Restart
 
-    docker rename nginx nginx2
+    docker stop nginx
     docker rm nginx2
+    docker rename nginx nginx2
     sh ./run-nginx.sh
 
+### xample
 
-zpakka!
+
+
 
 ### TODO
 
