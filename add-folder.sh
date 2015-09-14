@@ -43,12 +43,14 @@ if [[ $(find $REALPATH -maxdepth 0 -type d -empty 2>/dev/null) ]]; then
 
   #empty
   echo "$REALPATH is empty then I move the content of $CONTPATH folder in /tmp/swap_folder..."
-  docker exec -it nginx bash -c "[ $(find $CONTPATH -maxdepth 0 -type d -empty 2>/dev/null) ] && mkdir -p $CONTPATH || mv $CONTPATH/* /tmp/swap_folder"
+  docker exec -it nginx bash -c "if find /tmp/swap_folder -maxdepth 0 -empty | read v; then mkdir -p $CONTPATH; else mv $CONTPATH/* /tmp/swap_folder; fi"
+  #"[ $(find $CONTPATH -maxdepth 0 -type d -empty 2>/dev/null) ] && mkdir -p $CONTPATH || mv $CONTPATH/* /tmp/swap_folder"
 else
 
   #not empty
   echo "$REALPATH is not empty then I delete the content of $CONTPATH..."
-  docker exec -it nginx bash -c "[ $(find $CONTPATH -maxdepth 0 -type d -empty 2>/dev/null) ] && mkdir -p $CONTPATH || rm -Rf $CONTPATH/*"
+  docker exec -it nginx bash -c "if find /tmp/swap_folder -maxdepth 0 -empty | read v; then mkdir -p $CONTPATH; else rm -Rf $CONTPATH/*; fi"
+  #"[ $(find $CONTPATH -maxdepth 0 -type d -empty 2>/dev/null) ] && mkdir -p $CONTPATH || rm -Rf $CONTPATH/*"
 fi
 
 echo "Mounting $TMPDIR/$SUBROOT/$SUBPATH in $CONTPATH..."
