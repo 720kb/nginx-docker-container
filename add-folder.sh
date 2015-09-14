@@ -55,7 +55,7 @@ echo "Mounting $TMPDIR/$SUBROOT/$SUBPATH in $CONTPATH..."
 docker exec -it nginx bash -c "mount -o bind $TMPDIR/$SUBROOT/$SUBPATH $CONTPATH"
 
 echo "If /tmp/swap_folder is populated then moving the content in $CONTPATH..."
-docker exec -it nginx bash -c "[ $(find /tmp/swap_folder -maxdepth 0 -type d -empty 2>/dev/null) ] || mv /tmp/swap_folder/* $CONTPATH"
+docker exec -it nginx bash -c "if ! find /tmp/swap_folder -maxdepth 0 -empty | read v; then mv /tmp/swap_folder/* $CONTPATH; fi"
 
 echo "Cleaning the working data..."
 docker exec -it nginx bash -c "rm -Rf /tmp/swap_folder && umount $TMPDIR && rmdir $TMPDIR"
