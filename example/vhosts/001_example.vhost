@@ -1,0 +1,5 @@
+server {
+   listen 80;
+   server_name example.local example.localhost;
+   root /var/www/example;
+}
