@@ -51,7 +51,7 @@ make install
 
 RUN mkdir /add-folder
 ADD ./run/bootstrap.sh /opt/bootstrap.sh
-ADD ./add-folder.sh /opt/add-folder.sh
+ADD ./add-folder.sh /add-folder/add-folder.sh
 EXPOSE 80 443
 
 CMD ["/bin/bash", "/opt/bootstrap.sh" ]
