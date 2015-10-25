@@ -24,7 +24,7 @@ cd /tmp/nginx && \
   --with-file-aio \
   --with-ipv6 \
   --with-http_ssl_module \
-  --with-http_spdy_module \
+  --with-http_v2_module \
   --with-http_realip_module \
   --with-http_addition_module \
   --with-http_xslt_module \
@@ -49,7 +49,9 @@ cd /tmp/nginx && \
 make && \
 make install
 
+RUN mkdir /add-folder
 ADD ./run/bootstrap.sh /opt/bootstrap.sh
+ADD ./add-folder.sh /opt/add-folder.sh
 EXPOSE 80 443
 
 CMD ["/bin/bash", "/opt/bootstrap.sh" ]
