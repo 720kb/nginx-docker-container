@@ -49,7 +49,7 @@ cd /tmp/nginx && \
 make && \
 make install
 
-RUN mkdir /add-folder
+RUN mkdir /add-folder && mkdir -p /www/log
 ADD ./run/bootstrap.sh /opt/bootstrap.sh
 ADD ./add-folder.sh /add-folder/add-folder.sh
 EXPOSE 80 443
