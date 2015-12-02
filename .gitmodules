@@ -1,3 +1,3 @@
 [submodule "nginx-configuration"]
 	path = nginx-configuration
-	url = https://wouldgo@bitbucket.org/720kb/nginx-confs.git
+	url = git@bitbucket.org:720kb/nginx-confs.git
