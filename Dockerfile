@@ -3,7 +3,17 @@ MAINTAINER Dario Andrei <wouldgo84@gmail.com>
 
 RUN apt-get update && apt-get upgrade -y
 
-RUN apt-get install -y wget build-essential zlib1g-dev libpcre3-dev libxslt1-dev libxml2-dev libgd2-xpm-dev libgeoip-dev libgoogle-perftools-dev libperl-dev
+RUN apt-get install -y \
+  wget \
+  build-essential \
+  zlib1g-dev \
+  libpcre3-dev \
+  libxslt1-dev \
+  libxml2-dev \
+  libgd2-xpm-dev \
+  libgeoip-dev \
+  libgoogle-perftools-dev \
+  libperl-dev
 
 RUN wget http://nginx.org/download/nginx-$(wget -O - http://nginx.org/download/ | \
   grep -o -P '<a href="nginx-.+.tar.gz">' | \
