@@ -50,6 +50,7 @@ cd /tmp/nginx && \
   --with-ipv6 \
   --with-http_ssl_module \
   --with-openssl=/opt/.openssl \
+  --with-stream \
   --with-http_v2_module \
   --with-http_realip_module \
   --with-http_addition_module \
