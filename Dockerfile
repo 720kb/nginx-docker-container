@@ -15,6 +15,11 @@ RUN apk add --update \
     geoip-dev \
     perl \
     libaio-dev \
+    certbot \
+    libtool \
+    m4 \
+    autoconf \
+    automake \
   && rm -rf /var/cache/apk/*
 
 RUN addgroup -g 9000 -S www-data \
@@ -27,22 +32,42 @@ RUN wget ftp://ftp.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
 RUN wget https://github.com/openresty/headers-more-nginx-module/archive/v${HEADERES_MORE_NGINX_MODULE}.tar.gz \
     -O headers_more_nginx_module.gzipped
 
-RUN mkdir -p /tmp/nginx /tmp/headers-more-nginx-module /opt/.openssl /opt/nginx-configuration
+RUN mkdir -p /tmp/nginx \
+    /tmp/headers-more-nginx-module \
+    /tmp/modsecurity-nginx \
+    /opt/.openssl \
+    /opt/nginx-configuration
 
+WORKDIR /opt
+RUN git clone https://github.com/SpiderLabs/ModSecurity \
+  && cd ModSecurity \
+  && git checkout -b v3/master origin/v3/master \
+  && sh build.sh \
+  && git submodule init \
+  && git submodule update \
+  && ./configure \
+  && make \
+  && make install
+
+WORKDIR /
+RUN git clone https://github.com/SpiderLabs/ModSecurity-nginx.git /tmp/modsecurity-nginx
 RUN tar --extract --file=headers_more_nginx_module.gzipped --strip-components=1 --directory=/tmp/headers-more-nginx-module
-RUN tar --extract --file=latest_openssl.gzipped --strip-components=1 --directory=/opt/.openssl \
-  && cd /opt/.openssl \
-  && ./config --prefix=/usr/local \
+RUN tar --extract --file=latest_openssl.gzipped --strip-components=1 --directory=/opt/.openssl
+
+WORKDIR /opt/.openssl
+RUN ./config --prefix=/usr/local \
     --openssldir=/usr/local/open-ssl \
     threads \
     zlib \
   && make \
   && make test \
   && make install
-RUN cd / \
-  && tar --extract --file=latest_ngnix.gzipped --strip-components=1 --directory=/tmp/nginx \
-  && cd /tmp/nginx \
-  && ./configure --prefix=/usr/local/nginx \
+
+WORKDIR /
+RUN tar --extract --file=latest_ngnix.gzipped --strip-components=1 --directory=/tmp/nginx
+
+WORKDIR /tmp/nginx
+RUN ./configure --prefix=/usr/local/nginx \
     --sbin-path=/usr/local/sbin/nginx \
     --conf-path=/opt/nginx-configuration/nginx.conf \
     --error-log-path=/var/log/nginx/error.log \
@@ -51,6 +76,7 @@ RUN cd / \
     --lock-path=/run/lock/subsys/nginx \
     --user=www-data --group=www-data \
     --add-module=/tmp/headers-more-nginx-module \
+    --add-module=/tmp/modsecurity-nginx \
     --with-file-aio \
     --with-ipv6 \
     --with-http_ssl_module \
@@ -81,9 +107,9 @@ RUN cd / \
 
 RUN openssl dhparam -out /etc/dh2048.pem 2048
 
-RUN mkdir -p /www/log
-ADD ./run/bootstrap.sh /opt/bootstrap.sh
-
 EXPOSE 80 443
-RUN chmod u+x /opt/bootstrap.sh
-ENTRYPOINT ["sh", "/opt/bootstrap.sh" ]
+WORKDIR /opt
+ADD ./run/bootstrap.sh bootstrap.sh
+RUN chmod u+x bootstrap.sh
+
+ENTRYPOINT ["sh", "bootstrap.sh" ]
