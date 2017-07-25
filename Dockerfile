@@ -110,6 +110,7 @@ RUN openssl dhparam -out /etc/dh2048.pem 2048
 EXPOSE 80 443
 WORKDIR /opt
 ADD ./run/bootstrap.sh bootstrap.sh
+ADD ./certbot certbot/
 RUN chmod u+x bootstrap.sh
 
 ENTRYPOINT ["sh", "bootstrap.sh" ]

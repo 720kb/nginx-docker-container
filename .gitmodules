@@ -1,0 +1,4 @@
+[submodule "confs"]
+	path = confs
+	url = git@github.com:720kb/nginx-confs.git
+	branch = master
