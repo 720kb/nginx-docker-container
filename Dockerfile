@@ -111,6 +111,7 @@ EXPOSE 80 443
 WORKDIR /opt
 ADD ./run/bootstrap.sh bootstrap.sh
 ADD ./certbot certbot/
+ADD ./confs ./nginx-configuration
 RUN chmod u+x bootstrap.sh
 
 ENTRYPOINT ["sh", "bootstrap.sh" ]
