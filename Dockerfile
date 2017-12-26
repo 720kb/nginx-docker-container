@@ -3,8 +3,11 @@ ARG NGINX_VERSION=1.13.2
 #ftp://ftp.openssl.org/source/
 ARG OPENSSL_VERSION=1.0.2l
 ARG HEADERES_MORE_NGINX_MODULE=0.32
+ARG MODSECURITY_MODULE=3.0.0
+ARG MODSECURITY_NGINX_MODULE=1.0.0
 
 RUN apk add --update \
+    curl-dev \
     wget \
     linux-headers \
     alpine-sdk \
@@ -20,10 +23,18 @@ RUN apk add --update \
     m4 \
     autoconf \
     automake \
+    yajl-dev \
   && rm -rf /var/cache/apk/*
 
 RUN addgroup -g 9000 -S www-data \
   && adduser -u 9000 -D -S -G www-data www-data
+
+RUN mkdir -p /tmp/nginx \
+    /tmp/headers-more-nginx-module \
+    /tmp/modsecurity-nginx \
+    /opt/.openssl \
+    /opt/nginx-configuration \
+    /opt/modsecurity
 
 RUN wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
     -O latest_ngnix.gzipped
@@ -31,28 +42,37 @@ RUN wget ftp://ftp.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
     -O latest_openssl.gzipped
 RUN wget https://github.com/openresty/headers-more-nginx-module/archive/v${HEADERES_MORE_NGINX_MODULE}.tar.gz \
     -O headers_more_nginx_module.gzipped
-
-RUN mkdir -p /tmp/nginx \
-    /tmp/headers-more-nginx-module \
-    /tmp/modsecurity-nginx \
-    /opt/.openssl \
-    /opt/nginx-configuration
-
-WORKDIR /opt
-RUN git clone https://github.com/SpiderLabs/ModSecurity \
-  && cd ModSecurity \
-  && git checkout -b v3/master origin/v3/master \
-  && sh build.sh \
-  && git submodule init \
-  && git submodule update \
-  && ./configure \
-  && make \
-  && make install
+RUN wget https://github.com/SpiderLabs/ModSecurity/releases/download/v${MODSECURITY_MODULE}/modsecurity-v${MODSECURITY_MODULE}.tar.gz \
+    -O modsecurity.gzipped
+RUN wget https://github.com/SpiderLabs/ModSecurity-nginx/releases/download/v${MODSECURITY_NGINX_MODULE}/modsecurity-nginx-v${MODSECURITY_NGINX_MODULE}.tar.gz \
+    -O modsecurity-nginx.gzipped
 
 WORKDIR /
-RUN git clone https://github.com/SpiderLabs/ModSecurity-nginx.git /tmp/modsecurity-nginx
-RUN tar --extract --file=headers_more_nginx_module.gzipped --strip-components=1 --directory=/tmp/headers-more-nginx-module
-RUN tar --extract --file=latest_openssl.gzipped --strip-components=1 --directory=/opt/.openssl
+RUN tar --extract \
+    --strip-components=1 \
+    --file=latest_ngnix.gzipped --directory=/tmp/nginx \
+  && tar --extract \
+    --strip-components=1 \
+    --file=modsecurity.gzipped --directory=/opt/modsecurity \
+  && tar --extract \
+    --strip-components=1 \
+    --file=headers_more_nginx_module.gzipped --directory=/tmp/headers-more-nginx-module \
+  && tar --extract \
+    --strip-components=1 \
+    --file=latest_openssl.gzipped --directory=/opt/.openssl \
+  && tar --extract \
+    --strip-components=1 \
+    --file=modsecurity-nginx.gzipped --directory=/tmp/modsecurity-nginx \
+  && rm -Rfv latest_ngnix.gzipped \
+    latest_openssl.gzipped \
+    headers_more_nginx_module.gzipped \
+    modsecurity.gzipped \
+    modsecurity-nginx.gzipped
+
+WORKDIR /opt/modsecurity
+RUN ./configure \
+  && make \
+  && make install
 
 WORKDIR /opt/.openssl
 RUN ./config --prefix=/usr/local \
@@ -62,9 +82,6 @@ RUN ./config --prefix=/usr/local \
   && make \
   && make test \
   && make install
-
-WORKDIR /
-RUN tar --extract --file=latest_ngnix.gzipped --strip-components=1 --directory=/tmp/nginx
 
 WORKDIR /tmp/nginx
 RUN ./configure --prefix=/usr/local/nginx \
