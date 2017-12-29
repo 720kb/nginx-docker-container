@@ -15,7 +15,7 @@ services:
     volumes:
       - type: volume
         source: nginx-conf
-        target: /opt/nginx-configuration-tmp
+        target: /opt/nginx-configuration
         read_only: true
     networks:
       - dmz
@@ -31,4 +31,4 @@ volumes:
   nginx-conf:
     driver: kassisol/gitvol:0.1.0
     driver_opts:
-      url: https://github.com/kassisol/docker-volume-git.git
+      url: https://${GITHUB_ACCESS_TOKEN}@github.com/720kb/nginx-confs.git

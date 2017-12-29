@@ -6,7 +6,7 @@ ARG HEADERES_MORE_NGINX_MODULE=0.32
 ARG MODSECURITY_MODULE=3.0.0
 ARG MODSECURITY_NGINX_MODULE=1.0.0
 
-RUN apk add --update \
+RUN apk --no-cache add \
     curl-dev \
     wget \
     linux-headers \
@@ -23,8 +23,7 @@ RUN apk add --update \
     m4 \
     autoconf \
     automake \
-    yajl-dev \
-  && rm -rf /var/cache/apk/*
+    yajl-dev
 
 RUN addgroup -g 9000 -S www-data \
   && adduser -u 9000 -D -S -G www-data www-data
