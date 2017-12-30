@@ -2,9 +2,10 @@ FROM alpine:3.6
 ARG NGINX_VERSION=1.13.2
 #ftp://ftp.openssl.org/source/
 ARG OPENSSL_VERSION=1.0.2l
-ARG HEADERES_MORE_NGINX_MODULE=0.32
+ARG HEADERES_MORE_NGINX_MODULE=0.33
 ARG MODSECURITY_MODULE=3.0.0
 ARG MODSECURITY_NGINX_MODULE=1.0.0
+ARG NAXSI_MODULE=0.55.3
 
 RUN apk --no-cache add \
     curl-dev \
@@ -31,6 +32,7 @@ RUN addgroup -g 9000 -S www-data \
 RUN mkdir -p /tmp/nginx \
     /tmp/headers-more-nginx-module \
     /tmp/modsecurity-nginx \
+    /tmp/naxsi \
     /opt/.openssl \
     /opt/nginx-configuration \
     /opt/modsecurity
@@ -45,6 +47,8 @@ RUN wget https://github.com/SpiderLabs/ModSecurity/releases/download/v${MODSECUR
     -O modsecurity.gzipped
 RUN wget https://github.com/SpiderLabs/ModSecurity-nginx/releases/download/v${MODSECURITY_NGINX_MODULE}/modsecurity-nginx-v${MODSECURITY_NGINX_MODULE}.tar.gz \
     -O modsecurity-nginx.gzipped
+RUN wget https://github.com/nbs-system/naxsi/archive/${NAXSI_MODULE}.tar.gz \
+    -O naxsi.gzipped
 
 WORKDIR /
 RUN tar --extract \
@@ -62,11 +66,15 @@ RUN tar --extract \
   && tar --extract \
     --strip-components=1 \
     --file=modsecurity-nginx.gzipped --directory=/tmp/modsecurity-nginx \
+  && tar --extract \
+    --strip-components=1 \
+    --file=naxsi.gzipped --directory=/tmp/naxsi \
   && rm -Rfv latest_ngnix.gzipped \
     latest_openssl.gzipped \
     headers_more_nginx_module.gzipped \
     modsecurity.gzipped \
-    modsecurity-nginx.gzipped
+    modsecurity-nginx.gzipped \
+    naxsi.gzipped
 
 WORKDIR /opt/modsecurity
 RUN ./configure \
@@ -85,20 +93,28 @@ RUN ./config --prefix=/usr/local \
 WORKDIR /tmp/nginx
 RUN ./configure --prefix=/usr/local/nginx \
     --sbin-path=/usr/local/sbin/nginx \
-    --conf-path=/opt/nginx-configuration/nginx.conf \
-    --error-log-path=/var/log/nginx/error.log \
-    --http-log-path=/var/log/nginx/access.log \
+    --user=www-data --group=www-data \
     --pid-path=/var/run/nginx.pid \
     --lock-path=/run/lock/subsys/nginx \
-    --user=www-data --group=www-data \
+
+    --http-client-body-temp-path=/var/lib/nginx/body \
+    --http-proxy-temp-path=/var/lib/nginx/proxy \
+
+    --http-log-path=/var/log/nginx/access.log \
+    --error-log-path=/var/log/nginx/error.log \
+    --conf-path=/opt/nginx-configuration/nginx.conf \
+
     --add-module=/tmp/headers-more-nginx-module \
     --add-module=/tmp/modsecurity-nginx \
+    --add-module=/tmp/naxsi/naxsi_src \
+
+    --with-openssl=/opt/.openssl \
+
     --with-file-aio \
     --with-ipv6 \
     --with-http_ssl_module \
-    --with-openssl=/opt/.openssl \
-    --with-stream \
     --with-http_v2_module \
+    --with-stream \
     --with-http_realip_module \
     --with-http_addition_module \
     --with-http_xslt_module \
@@ -118,10 +134,19 @@ RUN ./configure --prefix=/usr/local/nginx \
     --with-pcre-jit \
     --with-pcre \
     --with-debug \
+
+    --without-mail_pop3_module \
+    --without-mail_smtp_module \
+    --without-mail_imap_module \
+    --without-http_uwsgi_module \
+    --without-http_scgi_module \
   && make \
   && make install
 
 RUN openssl dhparam -out /etc/dh2048.pem 2048
+RUN mv /tmp/naxsi/naxsi_config/naxsi_core.rules /opt/naxsi_core.rules
+RUN mkdir -p /var/lib/nginx/body
+RUN rm -Rfv /tmp/*
 
 EXPOSE 80 443
 WORKDIR /opt
