@@ -19,7 +19,7 @@ RUN apk --no-cache add \
     geoip-dev \
     perl \
     libaio-dev \
-    certbot \
+    acme-client \
     libtool \
     m4 \
     autoconf \
@@ -143,9 +143,9 @@ RUN ./configure --prefix=/usr/local/nginx \
   && make \
   && make install
 
-RUN openssl dhparam -out /etc/dh2048.pem 2048
+RUN openssl dhparam -out /etc/dhparam.pem 4096
 RUN mv /tmp/naxsi/naxsi_config/naxsi_core.rules /opt/naxsi_core.rules
-RUN mkdir -p /var/lib/nginx/body
+RUN mkdir -p /var/lib/nginx/body /var/www/acme
 RUN rm -Rfv /tmp/*
 
 EXPOSE 80 443
