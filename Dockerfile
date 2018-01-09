@@ -24,7 +24,8 @@ RUN apk --no-cache add \
     m4 \
     autoconf \
     automake \
-    yajl-dev
+    yajl-dev \
+    gd-dev
 
 RUN addgroup -g 9000 -S www-data \
   && adduser -u 9000 -D -S -G www-data www-data
@@ -78,7 +79,7 @@ RUN tar --extract \
 
 WORKDIR /opt/modsecurity
 RUN ./configure \
-  && make \
+  && make -j 8 \
   && make install
 
 WORKDIR /opt/.openssl
@@ -86,7 +87,7 @@ RUN ./config --prefix=/usr/local \
     --openssldir=/usr/local/open-ssl \
     threads \
     zlib \
-  && make \
+  && make -j 8 \
   && make test \
   && make install
 
@@ -110,9 +111,11 @@ RUN ./configure --prefix=/usr/local/nginx \
     --with-http_ssl_module \
     --with-http_v2_module \
     --with-stream \
+    --with-stream_ssl_module \
     --with-http_realip_module \
     --with-http_addition_module \
     --with-http_xslt_module \
+    --with-http_image_filter_module \
     --with-http_geoip_module \
     --with-http_sub_module \
     --with-http_dav_module \
@@ -124,17 +127,15 @@ RUN ./configure --prefix=/usr/local/nginx \
     --with-http_secure_link_module \
     --with-http_degradation_module \
     --with-http_stub_status_module \
-    --with-mail \
-    --with-mail_ssl_module \
     --with-pcre-jit \
     --with-pcre \
     --with-debug \
+    --with-mail \
+    --with-mail_ssl_module \
     --without-mail_pop3_module \
-    --without-mail_smtp_module \
-    --without-mail_imap_module \
     --without-http_uwsgi_module \
     --without-http_scgi_module \
-  && make \
+  && make -j 8 \
   && make install
 
 RUN openssl dhparam -out /etc/dhparam.pem 4096

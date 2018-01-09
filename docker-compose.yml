@@ -19,6 +19,10 @@ services:
         source: nginx-conf
         target: /opt/nginx-configuration
         read_only: true
+      - type: volume
+        source: sites
+        target: /var/sites
+        read_only: true
     networks:
       - dmz
       - internal
@@ -34,3 +38,4 @@ volumes:
     driver: kassisol/gitvol:0.1.0
     driver_opts:
       url: https://${GITHUB_ACCESS_TOKEN}@github.com/720kb/nginx-confs.git
+  sites:
